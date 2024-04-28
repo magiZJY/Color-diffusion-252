@@ -12,19 +12,19 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--log", default=False)
     parser.add_argument("--cpu-only", default=False)
-    parser.add_argument("--dataset", default="./img_align_celeba", help="Path to unzipped dataset (see readme for download info)")
+    parser.add_argument("--dataset", default="/content/drive/MyDrive/CSE252D/data/blackclover/grayscale", help="Path to unzipped dataset (see readme for download info)")
     parser.add_argument("--ckpt", default=None)
     args = parser.parse_args()
     print(args)
 
     enc_config, unet_config, colordiff_config = load_default_configs()
-    train_dl, val_dl = make_dataloaders(args.dataset, colordiff_config, num_workers=2, limit=35000)
+    train_dl, val_dl = make_dataloaders(args.dataset, colordiff_config, num_workers=0)
     colordiff_config["sample"] = False
     colordiff_config["should_log"] = args.log
 
     #TODO remove 
     # args.ckpt = "/home/ec2-user/Color-diffusion/Color_diffusion_v2/23l96nt1/checkpoints/last.ckpt"
-    args.ckpt = "./checkpoints/last.ckpt"
+    args.ckpt = "/content/lightning_logs/version_7/checkpoints/last.ckpt"
 
     
     encoder = Encoder(**enc_config)

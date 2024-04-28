@@ -10,7 +10,7 @@ from argparse import ArgumentParser
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    checkpoints = glob.glob("./checkpoints/last.ckpt")
+    checkpoints = glob.glob("/content/lightning_logs/version_7/checkpoints/last.ckpt")
     default_ckpt = checkpoints[-1] if checkpoints else None
     # default_ckpt = "./checkpoints/last.ckpt"
 
@@ -35,6 +35,7 @@ if __name__ == "__main__":
                                   config=colordiff_config)
     image = dataset[0].unsqueeze(0)
 
+    # print(image)
     encoder = Encoder(**enc_config)
     unet = Unet(**unet_config)
     model = ColorDiffusion.load_from_checkpoint(args.ckpt,
@@ -44,9 +45,9 @@ if __name__ == "__main__":
                                                 train_dl=None,
                                                 val_dl=None,
                                                 **colordiff_config)
-    model.to(device)
+    model.to('cuda')
 
-    colorized = model.sample_plot_image(image.to(device),
+    colorized = model.sample_plot_image(image.to('cuda'),
                                         show=args.show,
                                         prog=True)
     rgb_img = lab_to_rgb(*split_lab_channels(colorized))

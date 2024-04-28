@@ -23,7 +23,7 @@ def get_index_from_list(vals, t, x_shape):
 class GaussianDiffusion(LightningModule):
     def __init__(self, T, dynamic_threshold=False) -> None:
         super().__init__()
-        self.betas = linear_beta_schedule(timesteps=T).to(self.device)
+        self.betas = linear_beta_schedule(timesteps=T).to('cuda')
         self.alphas = 1. - self.betas
         self.alphas_cumprod = torch.cumprod(self.alphas, axis=0)
         self.alphas_cumprod_prev = F.pad(self.alphas_cumprod[:-1], (1, 0), value=1.0)

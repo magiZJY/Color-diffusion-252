@@ -9,7 +9,7 @@ from torch.utils.data import Dataset, DataLoader
 from PIL import Image, ImageChops
 
 from utils import load_default_configs, split_lab_channels
-
+import os
 
 def is_greyscale(im):
     """
@@ -89,7 +89,7 @@ class PickleColorizationDataset(ColorizationDataset):
         return (torch.load(self.paths[idx]))
 
 def make_datasets(path, config, limit=None):
-    img_paths = glob.glob(path + "/*")
+    img_paths = glob.glob(os.path.join(path, "*.png"))
     if limit:
         img_paths = random.sample(img_paths, limit)
     n_imgs = len(img_paths)
@@ -104,28 +104,36 @@ def make_datasets(path, config, limit=None):
     return train_dataset, val_dataset
 
 
-def make_dataloaders(path, config, num_workers=2, shuffle=True, limit=None):
+def make_dataloaders(path, config, num_workers=0, shuffle=False, limit=None):
     train_dataset, val_dataset = make_datasets(path, config, limit=limit)
     train_dl = DataLoader(train_dataset,
                           batch_size=config["batch_size"],
                           num_workers=num_workers,
                           pin_memory=config["pin_memory"],
-                          persistent_workers=True,
-                          shuffle=shuffle)
+                          persistent_workers=False,
+                          shuffle=True)
+                          # generator=torch.Generator(device='cuda'))
     val_dl = DataLoader(val_dataset,
                         batch_size=config["batch_size"],
                         num_workers=num_workers,
                         pin_memory=config["pin_memory"],
-                        persistent_workers=True,
-                        shuffle=shuffle)
+                        persistent_workers=False,
+                        shuffle=False)
+                        # generator=torch.Generator(device='cuda'))
+    try:
+      print("hi printing train and val len: ", len(train_dl), len(val_dl))
+    except:
+      print("dataloader has no len")
+
+
     return train_dl, val_dl
 
 
 if __name__ == "__main__":
     enc_config, unet_config, colordiff_config = load_default_configs()
-    train_dl, val_dl = make_dataloaders("./fairface",
+    train_dl, val_dl = make_dataloaders("/content/drive/MyDrive/CSE252D/data/blackclover/grayscale/",
                                         colordiff_config,
-                                        num_workers=4)
+                                        num_workers=0)
     x = next(iter(train_dl))
     y = next(iter(val_dl))
     print(f"y.shape = {y.shape}")

@@ -87,9 +87,19 @@ def right_pad_dims_to(x: torch.tensor, t: torch.tensor) -> torch.tensor:
 
 
 def split_lab_channels(image):
+    if not isinstance(image, torch.Tensor):
+      image = torch.from_numpy(image)
+      image.to('cuda')
+    
     assert isinstance(image, torch.Tensor)
     if len(image.shape) == 3:
+        print("hello???")
         image = image.unsqueeze(0)
+    
+    if image.shape[1] != 3:
+      print("not 64")
+      image = torch.reshape(image,(1,3,64,64))
+      print(image.shape)
     return torch.split(image, [1, 2], dim=1)
 
 
@@ -121,5 +131,5 @@ def l_to_rgb(L):
 
 
 def load_default_configs():
-    configs = ["./configs/default/encoder_config.yaml", "./configs/default/unet_config.yaml", "./configs/default/colordiff_config.yaml"]
+    configs = ["/content/Color-diffusion-252/configs/default/encoder_config.yaml",  "/content/Color-diffusion-252/configs/default/unet_config.yaml", "/content/Color-diffusion-252/configs/default/colordiff_config.yaml"]
     return [OmegaConf.load(path) for path in configs]

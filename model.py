@@ -27,7 +27,8 @@ class ColorDiffusion(pl.LightningModule):
                  use_ema=True,
                  **kwargs):
         super().__init__()
-        self.unet = unet.to(self.device)
+        # self.unet = unet.to(self.device)
+        self.unet = unet.to('cuda')
         self.T = T
         self.lr = lr
         self.using_cond = using_cond
@@ -44,7 +45,8 @@ class ColorDiffusion(pl.LightningModule):
 
         self.ema = ExponentialMovingAverage(self.unet.parameters(),
                                             decay=0.9999)
-        self.ema.to(self.device)
+        # self.ema.to(self.device)
+        self.ema.to('cuda')
         self.diffusion = GaussianDiffusion(T,
                                            dynamic_threshold=dynamic_threshold)
         if sample is True and display_every is None:
@@ -93,6 +95,7 @@ class ColorDiffusion(pl.LightningModule):
             self.log("val_loss", losses["total loss"])
         if self.sample and batch_idx and batch_idx % self.display_every == 0:
             self.sample_plot_image(batch)
+        # print("validation step loss: ")
         return losses["total loss"]
 
     @torch.inference_mode()
@@ -111,12 +114,13 @@ class ColorDiffusion(pl.LightningModule):
 
     def log_img(self, image, caption="diff samples", use_ema=False):
         rgb_imgs = lab_to_rgb(*split_lab_channels(image))
-        if use_ema:
-            self.logger.log_image("EMA samples", [rgb_imgs])
-        else:
-            self.logger.log_image("samples", [rgb_imgs])
+        # if use_ema:
+        #     self.logger.log_image("EMA samples", [rgb_imgs])
+        # else:
+        #     self.logger.log_image("samples", [rgb_imgs])
 
     def on_before_zero_grad(self, *args, **kwargs):
+
         self.ema.update()
 
     @torch.inference_mode()
@@ -182,7 +186,7 @@ class ColorDiffusion(pl.LightningModule):
                                                         prog=prog,
                                                         use_ema=use_ema,
                                                         save_all=save_all)
-        grid = torchvision.utils.make_grid(torch.cat(images), dim=0).to(x_l)
+        grid = torchvision.utils.make_grid(torch.cat(images)).to(x_l)
         if show:
             show_lab_image(grid.unsqueeze(0), log=self.should_log)
             plt.show()
